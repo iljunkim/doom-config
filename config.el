@@ -74,18 +74,20 @@
   ;; Point Org-roam to your specific notes subfolder
   (setq org-roam-directory (file-truename "~/Documents/org_notes/roam_notes"))
 
-  (map! :map global-map
-        :prefix "C-c n"
-        :desc "Find node"          "f" #'org-roam-node-find
-        :desc "Insert node"        "i" #'org-roam-node-insert
-        :desc "Toggle buffer"      "b" #'org-roam-buffer-toggle
-        :desc "Capture to node"    "c" #'org-roam-capture
-        :desc "Show graph"         "g" #'org-roam-graph
-        :desc "Sync database"      "s" #'org-roam-db-sync)
-
   ;; Automatically sync database on file changes
   (org-roam-db-autosync-mode))
 ;; Run to sync teh roam notes by ~/.config/emacs/bin/doom sync
+
+;; outside of after! org-roam to make it work when emacs is launched.
+(map! :map global-map
+      :prefix "C-c n"
+      :desc "Find node"          "f" #'org-roam-node-find
+      :desc "Insert node"        "i" #'org-roam-node-insert
+      :desc "Toggle buffer"      "b" #'org-roam-buffer-toggle
+      :desc "Capture to node"    "c" #'org-roam-capture
+      :desc "Show graph"         "g" #'org-roam-graph
+      :desc "Sync database"      "s" #'org-roam-db-sync)
+
 
 ;; Set custom initial width (120 columns) and height (45 lines)
 (add-to-list 'initial-frame-alist '(width . 120))
@@ -113,10 +115,21 @@
                '((c++-mode c-mode) . ("clangd" "--extra-arg=-std=c++20" "--background-index"))))
 (after! eglot
   (set-eglot-client! '(c++-mode c-mode)
-    '("clangd"
-      "--extra-arg=-std=c++20"
-      "--background-index"
-      "--clang-tidy")))
+                     '("clangd"
+                       "--extra-arg=-std=c++20"
+                       "--background-index"
+                       "--clang-tidy")))
+
+;; Use latexmk to compile LaTeX into PDF automatically
+(after! ox-latex
+  (setq org-latex-pdf-process
+        '("latexmk -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")))
+
+;; Configure Org-mode inline LaTeX snippet preview to output crisp PDFs/PNGs
+(after! org
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale 1.5)
+        org-preview-latex-default-process 'dvisvgm)) ; Uses vector SVGs for crisp previews (or 'dvipng)
 
 
 ;;
