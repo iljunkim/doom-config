@@ -21,9 +21,11 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-;;
+;; (setq doom-font (font-spec :family "Fira Code" :size 14 :weight 'semi-light)
+;;       doom-variable-pitch-font (font-spec :family "Fira Sans" :size 15)
+;;       doom-big-font (font-spec :family "Fire Code" :size 22))
+;; ;
+                                        ;
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
 ;; refresh your font settings. If Emacs still can't find your font, it likely
@@ -47,8 +49,79 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+;; (setq org-directory "~/org/")
 
+;;
+;; Local changes begin
+;;
+;;
+
+(setq doom-font (font-spec :family "Monaco" :size 14 :weight 'medium)
+      doom-big-font (font-spec :family "Monaco" :size 20))
+
+(after! org
+  ;; Set the primary directory for your Org files
+  (setq org-directory "~/Documents/org_notes")
+
+  ;; Include all .org files in ~/Documents/org_notes in your Org Agenda
+  (setq org-agenda-files (list "~/Documents/org_notes"))
+
+  ;; Point default capture target file inside your org_notes folder
+  (setq org-default-notes-file (expand-file-name "notes.org" org-directory)))
+
+;; org-roam configuration
+(after! org-roam
+  ;; Point Org-roam to your specific notes subfolder
+  (setq org-roam-directory (file-truename "~/Documents/org_notes/roam_notes"))
+
+  (map! :map global-map
+        :prefix "C-c n"
+        :desc "Find node"          "f" #'org-roam-node-find
+        :desc "Insert node"        "i" #'org-roam-node-insert
+        :desc "Toggle buffer"      "b" #'org-roam-buffer-toggle
+        :desc "Capture to node"    "c" #'org-roam-capture
+        :desc "Show graph"         "g" #'org-roam-graph
+        :desc "Sync database"      "s" #'org-roam-db-sync)
+
+  ;; Automatically sync database on file changes
+  (org-roam-db-autosync-mode))
+;; Run to sync teh roam notes by ~/.config/emacs/bin/doom sync
+
+;; Set custom initial width (120 columns) and height (45 lines)
+(add-to-list 'initial-frame-alist '(width . 120))
+(add-to-list 'initial-frame-alist '(height . 60))
+
+(add-to-list 'default-frame-alist '(width . 120))
+(add-to-list 'default-frame-alist '(height . 60))
+
+;; Enable Flycheck integration with Eglot
+(use-package! flycheck-eglot
+  :after (eglot flycheck)
+  :config
+  (global-flycheck-eglot-mode 1))
+
+;; Force Flycheck C/C++ checkers to use C++20 for standalone passes
+(after! flycheck
+  (setq flycheck-gcc-language-standard "c++20"
+        flycheck-clang-language-standard "c++20")
+  (add-to-list 'flycheck-clang-args "-std=c++20")
+  (add-to-list 'flycheck-gcc-args "-std=c++20"))
+
+
+(after! eglot
+  (add-to-list 'eglot-server-programs
+               '((c++-mode c-mode) . ("clangd" "--extra-arg=-std=c++20" "--background-index"))))
+(after! eglot
+  (set-eglot-client! '(c++-mode c-mode)
+    '("clangd"
+      "--extra-arg=-std=c++20"
+      "--background-index"
+      "--clang-tidy")))
+
+
+;;
+;; Local changes end
+;;
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `with-eval-after-load' block, otherwise Doom's defaults may override your
