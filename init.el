@@ -94,7 +94,6 @@
        ;;biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
        debugger         ; stepping through code, to help you add bugs
-       ;;(dap +lldb)         ; Enables DAP mode and lldb integration
        ;;direnv
        ;;docker
        ;;editorconfig      ; let someone else argue about tabs vs spaces
@@ -115,7 +114,6 @@
        :os
        (:if (featurep :system 'macos) macos)  ; improve compatibility with macOS
        ;;tty               ; improve the terminal Emacs experience
-       env
 
        :lang
        ;;ada               ; In strong typing we (blindly) trust

@@ -93,8 +93,8 @@
       :desc "Sync database"      "s" #'org-roam-db-sync
       )
 
-;; Correct path to Homebrew LLVM/LLDB bin
-(add-to-list 'exec-path "/opt/homebrew/opt/lldb/bin")
+;; ;; Correct path to Homebrew LLVM/LLDB bin
+;; (add-to-list 'exec-path "/opt/homebrew/opt/lldb/bin")
 
 ;; 1. Use Doom's built-in autoload wrapper for starting the debugger
 (map! :leader
@@ -104,26 +104,26 @@
       :desc "Disconnect"         "q" #'dape-disconnect
       :desc "DAP Hydra Controls" "h" #'dape-hydra)
 
-;; 2. Configure dap-mode settings strictly INSIDE after! dap-mode
-(after! dap-mode
-  (dap-ui-mode 1)
-  (dap-tooltip-mode 1)
-  (require 'dap-lldb)
+;; ;; 2. Configure dap-mode settings strictly INSIDE after! dap-mode
+;; (after! dap-mode
+;;   (dap-ui-mode 1)
+;;   (dap-tooltip-mode 1)
+;;   (require 'dap-lldb)
 
-  ;; Point to Homebrew's lldb-dap executable
-  (setq dap-lldb-debug-program '("/opt/homebrew/opt/lldb/bin/lldb-dap"))
+;;   ;; Point to Homebrew's lldb-dap executable
+;;   (setq dap-lldb-debug-program '("/opt/homebrew/opt/lldb/bin/lldb-dap"))
 
-  ;; Register C++ debug template
-  (dap-register-debug-template
-   "LLDB: Debug C++ Binary"
-   (list :type "lldb"
-         :request "launch"
-         :name "LLDB: Launch"
-         :program (lambda ()
-                    (read-file-name "Select executable: "
-                                    (concat (projectile-project-root) "build/")))
-         :cwd "${workspaceFolder}"
-         :stopOnEntry nil)))
+;;   ;; Register C++ debug template
+;;   (dap-register-debug-template
+;;    "LLDB: Debug C++ Binary"
+;;    (list :type "lldb"
+;;          :request "launch"
+;;          :name "LLDB: Launch"
+;;          :program (lambda ()
+;;                     (read-file-name "Select executable: "
+;;                                     (concat (projectile-project-root) "build/")))
+;;          :cwd "${workspaceFolder}"
+;;          :stopOnEntry nil)))
 
 
 
