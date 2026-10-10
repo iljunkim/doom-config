@@ -56,6 +56,10 @@
 ;;
 ;;
 
+;; Inherit shell env variables
+;;(when (memq window-system '(mac ns x))
+;;  (exec-path-from-shell-initialize))
+
 (setq doom-font (font-spec :family "Monaco" :size 14 :weight 'medium)
       doom-big-font (font-spec :family "Monaco" :size 20))
 
@@ -86,7 +90,41 @@
       :desc "Toggle buffer"      "b" #'org-roam-buffer-toggle
       :desc "Capture to node"    "c" #'org-roam-capture
       :desc "Show graph"         "g" #'org-roam-graph
-      :desc "Sync database"      "s" #'org-roam-db-sync)
+      :desc "Sync database"      "s" #'org-roam-db-sync
+      )
+
+;; Correct path to Homebrew LLVM/LLDB bin
+(add-to-list 'exec-path "/opt/homebrew/opt/lldb/bin")
+
+;; 1. Use Doom's built-in autoload wrapper for starting the debugger
+(map! :leader
+      :prefix ("o d" . "debugger")
+      :desc "Start Debugger"     "d" #'+debugger/start
+      :desc "Toggle Breakpoint"  "b" #'dape-breakpoint-toggle
+      :desc "Disconnect"         "q" #'dape-disconnect
+      :desc "DAP Hydra Controls" "h" #'dape-hydra)
+
+;; 2. Configure dap-mode settings strictly INSIDE after! dap-mode
+(after! dap-mode
+  (dap-ui-mode 1)
+  (dap-tooltip-mode 1)
+  (require 'dap-lldb)
+
+  ;; Point to Homebrew's lldb-dap executable
+  (setq dap-lldb-debug-program '("/opt/homebrew/opt/lldb/bin/lldb-dap"))
+
+  ;; Register C++ debug template
+  (dap-register-debug-template
+   "LLDB: Debug C++ Binary"
+   (list :type "lldb"
+         :request "launch"
+         :name "LLDB: Launch"
+         :program (lambda ()
+                    (read-file-name "Select executable: "
+                                    (concat (projectile-project-root) "build/")))
+         :cwd "${workspaceFolder}"
+         :stopOnEntry nil)))
+
 
 
 ;; Set custom initial width (120 columns) and height (45 lines)
@@ -130,6 +168,37 @@
   (setq org-format-latex-options
         (plist-put org-format-latex-options :scale 1.5)
         org-preview-latex-default-process 'dvisvgm)) ; Uses vector SVGs for crisp previews (or 'dvipng)
+
+
+(after! projectile
+  ;; Set default build directory to 'build' for CMake projects
+  (setq projectile-build-dir "build")
+
+  ;; Register CMake as a project type with build commands pointing to build/
+  (projectile-register-project-type 'cmake '("CMakeLists.txt")
+                                    :configure "cmake -B build -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+                                    :compile "cmake --build build"
+                                    :test "ctest --test-dir build"
+                                    :run "cmake --build build && ./build/my_program"))
+
+(after! dap-mode
+  (dap-ui-mode 1)
+  (dap-tooltip-mode 1)
+
+  ;; Specify path to Apple's native lldb-dap binary
+  (setq dap-lldb-debug-program '("/Library/Developer/CommandLineTools/usr/bin/lldb-dap"))
+
+  ;; Register C++ debugging template
+  (dap-register-debug-template
+   "LLDB: Debug C++ Binary"
+   (list :type "lldb"
+         :request "launch"
+         :name "LLDB: Launch"
+         :program (lambda ()
+                    (read-file-name "Select executable: "
+                                    (concat (projectile-project-root) "build/")))
+         :cwd "${workspaceFolder}"
+         :stopOnEntry nil)))
 
 
 ;;
