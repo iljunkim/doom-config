@@ -54,7 +54,6 @@
 ;;
 ;; Local changes begin
 ;;
-;;
 
 ;; Inherit shell env variables
 ;;(when (memq window-system '(mac ns x))
@@ -97,35 +96,12 @@
 ;; (add-to-list 'exec-path "/opt/homebrew/opt/lldb/bin")
 
 ;; 1. Use Doom's built-in autoload wrapper for starting the debugger
-(map! :leader
-      :prefix ("o d" . "debugger")
-      :desc "Start Debugger"     "d" #'+debugger/start
-      :desc "Toggle Breakpoint"  "b" #'dape-breakpoint-toggle
-      :desc "Disconnect"         "q" #'dape-disconnect
-      :desc "DAP Hydra Controls" "h" #'dape-hydra)
-
-;; ;; 2. Configure dap-mode settings strictly INSIDE after! dap-mode
-;; (after! dap-mode
-;;   (dap-ui-mode 1)
-;;   (dap-tooltip-mode 1)
-;;   (require 'dap-lldb)
-
-;;   ;; Point to Homebrew's lldb-dap executable
-;;   (setq dap-lldb-debug-program '("/opt/homebrew/opt/lldb/bin/lldb-dap"))
-
-;;   ;; Register C++ debug template
-;;   (dap-register-debug-template
-;;    "LLDB: Debug C++ Binary"
-;;    (list :type "lldb"
-;;          :request "launch"
-;;          :name "LLDB: Launch"
-;;          :program (lambda ()
-;;                     (read-file-name "Select executable: "
-;;                                     (concat (projectile-project-root) "build/")))
-;;          :cwd "${workspaceFolder}"
-;;          :stopOnEntry nil)))
-
-
+;;(map! :leader
+;;      :prefix ("o d" . "debugger")
+;;      :desc "Start Debugger"     "d" #'+debugger/start
+;;      :desc "Toggle Breakpoint"  "b" #'dape-breakpoint-toggle
+;;      :desc "Disconnect"         "q" #'dape-disconnect
+;;      :desc "DAP Hydra Controls" "h" #'dape-hydra)
 
 ;; Set custom initial width (120 columns) and height (45 lines)
 (add-to-list 'initial-frame-alist '(width . 120))
@@ -134,29 +110,8 @@
 (add-to-list 'default-frame-alist '(width . 120))
 (add-to-list 'default-frame-alist '(height . 60))
 
-;; Enable Flycheck integration with Eglot
-(use-package! flycheck-eglot
-  :after (eglot flycheck)
-  :config
-  (global-flycheck-eglot-mode 1))
-
-;; Force Flycheck C/C++ checkers to use C++20 for standalone passes
-(after! flycheck
-  (setq flycheck-gcc-language-standard "c++20"
-        flycheck-clang-language-standard "c++20")
-  (add-to-list 'flycheck-clang-args "-std=c++20")
-  (add-to-list 'flycheck-gcc-args "-std=c++20"))
-
-
-(after! eglot
-  (add-to-list 'eglot-server-programs
-               '((c++-mode c-mode) . ("clangd" "--extra-arg=-std=c++20" "--background-index"))))
-(after! eglot
-  (set-eglot-client! '(c++-mode c-mode)
-                     '("clangd"
-                       "--extra-arg=-std=c++20"
-                       "--background-index"
-                       "--clang-tidy")))
+;; Let buffers always use the real path
+(setq find-file-visit-truename t)
 
 ;; Use latexmk to compile LaTeX into PDF automatically
 (after! ox-latex
@@ -181,24 +136,38 @@
                                     :test "ctest --test-dir build"
                                     :run "cmake --build build && ./build/my_program"))
 
-(after! dap-mode
-  (dap-ui-mode 1)
-  (dap-tooltip-mode 1)
+(map! :leader
+      :prefix "d"
+      :desc "Start/restart" "d" #'dape
+      :desc "Breakpoint"    "b" #'dape-breakpoint-toggle
+      :desc "Continue"      "c" #'dape-continue
+      :desc "Step over"     "n" #'dape-next
+      :desc "Step in"       "i" #'dape-step-in
+      :desc "Step out"      "o" #'dape-step-out
+      :desc "REPL"          "r" #'dape-repl
+      :desc "Quit"          "q" #'dape-quit)
 
-  ;; Specify path to Apple's native lldb-dap binary
-  (setq dap-lldb-debug-program '("/Library/Developer/CommandLineTools/usr/bin/lldb-dap"))
+(after! which-key
+  (which-key-add-key-based-replacements "SPC d" "debug"))
 
-  ;; Register C++ debugging template
-  (dap-register-debug-template
-   "LLDB: Debug C++ Binary"
-   (list :type "lldb"
-         :request "launch"
-         :name "LLDB: Launch"
-         :program (lambda ()
-                    (read-file-name "Select executable: "
-                                    (concat (projectile-project-root) "build/")))
-         :cwd "${workspaceFolder}"
-         :stopOnEntry nil)))
+;;(after! dap-mode
+;;  (dap-ui-mode 1)
+;;  (dap-tooltip-mode 1)
+;;
+;;  ;; Specify path to Apple's native lldb-dap binary
+;;  (setq dap-lldb-debug-program '("/Library/Developer/CommandLineTools/usr/bin/lldb-dap"))
+;;
+;;  ;; Register C++ debugging template
+;;  (dap-register-debug-template
+;;   "LLDB: Debug C++ Binary"
+;;   (list :type "lldb"
+;;         :request "launch"
+;;         :name "LLDB: Launch"
+;;         :program (lambda ()
+;;                    (read-file-name "Select executable: "
+;;                                    (concat (projectile-project-root) "build/")))
+;;         :cwd "${workspaceFolder}"
+;;         :stopOnEntry nil)))
 
 
 ;;
