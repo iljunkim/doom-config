@@ -92,17 +92,6 @@
       :desc "Sync database"      "s" #'org-roam-db-sync
       )
 
-;; ;; Correct path to Homebrew LLVM/LLDB bin
-;; (add-to-list 'exec-path "/opt/homebrew/opt/lldb/bin")
-
-;; 1. Use Doom's built-in autoload wrapper for starting the debugger
-;;(map! :leader
-;;      :prefix ("o d" . "debugger")
-;;      :desc "Start Debugger"     "d" #'+debugger/start
-;;      :desc "Toggle Breakpoint"  "b" #'dape-breakpoint-toggle
-;;      :desc "Disconnect"         "q" #'dape-disconnect
-;;      :desc "DAP Hydra Controls" "h" #'dape-hydra)
-
 ;; Set custom initial width (120 columns) and height (45 lines)
 (add-to-list 'initial-frame-alist '(width . 120))
 (add-to-list 'initial-frame-alist '(height . 60))
@@ -146,29 +135,19 @@
       :desc "Step out"      "o" #'dape-step-out
       :desc "REPL"          "r" #'dape-repl
       :desc "Quit"          "q" #'dape-quit)
-
 (after! which-key
   (which-key-add-key-based-replacements "SPC d" "debug"))
 
-;;(after! dap-mode
-;;  (dap-ui-mode 1)
-;;  (dap-tooltip-mode 1)
-;;
-;;  ;; Specify path to Apple's native lldb-dap binary
-;;  (setq dap-lldb-debug-program '("/Library/Developer/CommandLineTools/usr/bin/lldb-dap"))
-;;
-;;  ;; Register C++ debugging template
-;;  (dap-register-debug-template
-;;   "LLDB: Debug C++ Binary"
-;;   (list :type "lldb"
-;;         :request "launch"
-;;         :name "LLDB: Launch"
-;;         :program (lambda ()
-;;                    (read-file-name "Select executable: "
-;;                                    (concat (projectile-project-root) "build/")))
-;;         :cwd "${workspaceFolder}"
-;;         :stopOnEntry nil)))
-
+;; devdocs, added (package! devdocs) in packages.el
+(use-package! devdocs
+  :commands (devdocs-lookup
+             devdocs-search
+             devdocs-install)
+  :config
+  (setq devdocs-window-select t))
+(map! :leader
+      :desc "DevDocs lookup" "o d" #'devdocs-lookup
+      :desc "DevDocs search" "o D" #'devdocs-search)
 
 ;;
 ;; Local changes end
