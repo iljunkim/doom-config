@@ -1,0 +1,11 @@
+# key: awr
+# name: Anki word-root deck
+# --
+:PROPERTIES:
+:ANKI_NOTE_TYPE: Simple
+:ANKI_DECK: word-roots
+:END:
+*** Front
+   $1
+*** Back
+   $0

@@ -59,10 +59,13 @@
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
 
-(setq doom-font (font-spec :family "Monaco" :size 14 :weight 'medium)
+(setq doom-font (font-spec :family "Monaco" :size 15 :weight 'medium)
       doom-big-font (font-spec :family "Monaco" :size 20))
 
 (after! org
+  ;; Do not show emphasis-markers /*=+ ...
+  (setq org-hide-emphasis-markers t)
+
   ;; Set the primary directory for your Org files
   (setq org-directory "~/Documents/org_notes")
 
@@ -71,6 +74,16 @@
 
   ;; Point default capture target file inside your org_notes folder
   (setq org-default-notes-file (expand-file-name "notes.org" org-directory)))
+
+(after! org
+  (add-hook! 'org-mode-hook
+    (setq-local line-spacing 0.25)
+    (variable-pitch-mode 0))
+
+;; Configure Org-mode inline LaTeX snippet preview to output crisp PDFs/PNGs
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options :scale 1.5)
+        org-preview-latex-default-process 'dvisvgm)) ; Uses vector SVGs for crisp previews (or 'dvipng)
 
 ;; org-roam configuration
 (after! org-roam
@@ -104,15 +117,34 @@
 
 ;; Use latexmk to compile LaTeX into PDF automatically
 (after! ox-latex
+;; Set default font size to 12pt (or change "article" to "extarticle" for 14pt+)
+  (setq org-latex-default-class "extarticle")
+  (add-to-list 'org-latex-classes
+               '("extarticle"
+                 "\\documentclass[14pt]{extarticle}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+;; Reduce page margins to 0.5 inches
+  (add-to-list 'org-latex-packages-alist '("margin=0.5in" "geometry" nil) t)
+
+  ;; To convert native unicodes to pdf
+  (setq org-latex-compiler "xelatex")
   (setq org-latex-pdf-process
-        '("latexmk -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")))
+        '("latexmk -f -pdfxe -interaction=nonstopmode -output-directory=%o %f"))
 
-;; Configure Org-mode inline LaTeX snippet preview to output crisp PDFs/PNGs
-(after! org
-  (setq org-format-latex-options
-        (plist-put org-format-latex-options :scale 1.5)
-        org-preview-latex-default-process 'dvisvgm)) ; Uses vector SVGs for crisp previews (or 'dvipng)
+  (add-to-list 'org-latex-packages-alist '("" "fontspec" t ("xelatex" "lualatex")) t)
+  (add-to-list 'org-latex-packages-alist '("\\setmainfont{Lucida Grande}" "" nil) t)
+  (add-to-list 'org-latex-packages-alist '("\\setsansfont{Lucida Grande}" "" nil) t)
+  (add-to-list 'org-latex-packages-alist '("\\setmonofont{Menlo}" "" nil) t))
 
+;; Redirect all LaTeX and PDF exports to /tmp
+(defadvice! +org-export-output-file-name-to-tmp (orig-fn extension &optional subtreep pub-dir)
+  :around #'org-export-output-file-name
+  (let ((pub-dir (if (member extension '(".tex" ".pdf" ".epub")) "/tmp" pub-dir)))
+    (funcall orig-fn extension subtreep pub-dir)))
 
 (after! projectile
   ;; Set default build directory to 'build' for CMake projects
@@ -149,6 +181,79 @@
       :desc "DevDocs lookup" "o d" #'devdocs-lookup
       :desc "DevDocs search" "o D" #'devdocs-search)
 
+;; Codex map
+(defun my/codex ()
+  "Launch Codex in vterm at the project root."
+  (interactive)
+  (require 'project)
+  (require 'vterm)
+  (let ((default-directory
+         (if-let* ((project (project-current)))
+             (project-root project)
+           default-directory)))
+    (vterm "*codex*")
+    (vterm-send-string "codex")
+    (vterm-send-return)))
+(map! :leader
+      :desc "Launch Codex" "o c" #'my/codex)
+
+;; Anki
+(use-package! anki-editor
+  :after org
+  :config
+  ;; Automatically create decks if they don't exist in Anki
+  (setq anki-editor-create-decks t)
+  ;; Map Org mode tags directly to Anki tags
+  (setq anki-editor-org-tags-as-anki-tags t)
+
+  ;; Recommended: Define keybindings for common actions
+  (map! :map org-mode-map
+        :localleader
+        :desc "Push notes to Anki" "a p" #'anki-editor-push-notes
+        :desc "Insert Anki note"   "a i" #'anki-editor-insert-note
+        :desc "Cloze region"       "a c" #'anki-editor-cloze-region))
+
+;; ----------------------------------------
+;; Spell checking: spell-fu + Hunspell
+;; ----------------------------------------
+
+;; Dictionary directory
+(setenv "DICPATH"
+        (expand-file-name "~/Library/Spelling"))
+
+;; Hunspell configuration
+(setq ispell-program-name "/opt/homebrew/bin/hunspell"
+      ispell-dictionary "en_US"
+      ispell-really-hunspell t)
+
+;; spell-fu configuration
+(after! spell-fu
+  (setq spell-fu-idle-delay 0.5)
+  ;; Define the path for your personal dictionary file
+  (setq ispell-personal-dictionary (expand-file-name "personal-dict.pws" doom-user-dir))
+
+  ;; Create the file if it doesn't exist yet (required by spell-fu)
+  (unless (file-exists-p ispell-personal-dictionary)
+    (with-temp-file ispell-personal-dictionary
+      (insert "personal_ws-1.1 en 0\n")))
+
+  ;; Register the personal dictionary with spell-fu
+  (add-hook 'spell-fu-mode-hook
+            (lambda ()
+              (spell-fu-dictionary-add
+               (spell-fu-get-personal-dictionary "en-personal" ispell-personal-dictionary)))))
+
+;; Using macOS dictionary
+(use-package! osx-dictionary
+  :commands (osx-dictionary-search-word-at-point
+             osx-dictionary-search-input)
+  :init
+  (map! :leader
+        :desc "Dictionary: word at point"
+        "s d" #'osx-dictionary-search-word-at-point
+
+        :desc "Dictionary: enter word"
+        "s D" #'osx-dictionary-search-input))
 ;;
 ;; Local changes end
 ;;

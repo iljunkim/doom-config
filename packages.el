@@ -56,6 +56,11 @@
 ;; Local setup begins
 ;;
 (package! devdocs)
+
+(package! anki-editor :recipe (:host github :repo "anki-editor/anki-editor"))
+
+(package! osx-dictionary)
+
 ;;
 ;; Local setup ends
 ;;
