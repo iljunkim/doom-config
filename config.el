@@ -59,8 +59,12 @@
 ;;(when (memq window-system '(mac ns x))
 ;;  (exec-path-from-shell-initialize))
 
+;;(setq doom-font (font-spec :family "Monaco" :size 15 :weight 'medium)
+;;      doom-big-font (font-spec :family "Monaco" :size 20))
+
+;; Set your monospace and variable-pitch fonts
 (setq doom-font (font-spec :family "Monaco" :size 15 :weight 'medium)
-      doom-big-font (font-spec :family "Monaco" :size 20))
+      doom-variable-pitch-font (font-spec :family "Avenir Next" :size 18))
 
 (after! org
   ;; Do not show emphasis-markers /*=+ ...
@@ -76,14 +80,24 @@
   (setq org-default-notes-file (expand-file-name "notes.org" org-directory)))
 
 (after! org
-  (add-hook! 'org-mode-hook
-    (setq-local line-spacing 0.25)
-    (variable-pitch-mode 0))
+
+  ;; Enable mixed-pitch in Org-mode
+  (add-hook 'org-mode-hook #'mixed-pitch-mode)
+
+;;  (add-hook! 'org-mode-hook
+;;    (setq-local line-spacing 0.35)
+;;    (variable-pitch-mode 0))
+;;
+  (add-hook 'org-mode-hook (lambda () (setq-local line-spacing 0.35)))
 
 ;; Configure Org-mode inline LaTeX snippet preview to output crisp PDFs/PNGs
   (setq org-format-latex-options
         (plist-put org-format-latex-options :scale 1.5)
         org-preview-latex-default-process 'dvisvgm)) ; Uses vector SVGs for crisp previews (or 'dvipng)
+
+;; Configure mixed-pitch after it loads
+(after! mixed-pitch
+  (setq mixed-pitch-set-height t))
 
 ;; org-roam configuration
 (after! org-roam

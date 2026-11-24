@@ -61,6 +61,8 @@
 
 (package! osx-dictionary)
 
+(package! mixed-pitch)
+
 ;;
 ;; Local setup ends
 ;;
