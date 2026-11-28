@@ -120,11 +120,11 @@
       )
 
 ;; Set custom initial width (120 columns) and height (45 lines)
-(add-to-list 'initial-frame-alist '(width . 120))
-(add-to-list 'initial-frame-alist '(height . 60))
+(add-to-list 'initial-frame-alist '(width . 100))
+(add-to-list 'initial-frame-alist '(height . 50))
 
-(add-to-list 'default-frame-alist '(width . 120))
-(add-to-list 'default-frame-alist '(height . 60))
+(add-to-list 'default-frame-alist '(width . 100))
+(add-to-list 'default-frame-alist '(height . 50))
 
 ;; Let buffers always use the real path
 (setq find-file-visit-truename t)
